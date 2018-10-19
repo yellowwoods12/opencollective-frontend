@@ -21,6 +21,7 @@ class Update extends React.Component {
     compact: PropTypes.bool, // if compact true, only show the summary
     editable: PropTypes.bool,
     includeHostedCollectives: PropTypes.bool,
+    includeChildCollectives: PropTypes.bool,
     LoggedInUser: PropTypes.object,
   };
 
@@ -89,7 +90,6 @@ class Update extends React.Component {
 
   render() {
     const { intl, collective, update, LoggedInUser } = this.props;
-
     const { mode } = this.state;
     const canEditUpdate = LoggedInUser && LoggedInUser.canEditUpdate(update);
     const canPublishUpdate =
@@ -182,7 +182,7 @@ class Update extends React.Component {
         <div className="body">
           {mode === 'summary' && (
             <div className="title">
-              <Link route={`/${collective.slug}/updates/${update.slug}`}>
+              <Link route={`/${update.collective.slug}/updates/${update.slug}`}>
                 <a>{capitalize(update.title)}</a>
               </Link>
             </div>
@@ -193,12 +193,23 @@ class Update extends React.Component {
           )}
 
           <div className="meta">
-            <div className="author">
-              <Link route={`/${update.fromCollective.slug}`}>
-                <a>{update.fromCollective.name}</a>
-              </Link>
-            </div>
-            <Role role="ADMIN" />
+            {update.collective.slug === collective.slug && (
+              <div>
+                <div className="author">
+                  <Link route={`/${update.fromCollective.slug}`}>
+                    <a>{update.fromCollective.name}</a>
+                  </Link>
+                </div>
+                <Role role="ADMIN" />
+              </div>
+            )}
+            {update.collective.slug !== collective.slug && (
+              <div className="collective">
+                <Link route={`/${update.collective.slug}`}>
+                  <a>{update.collective.name}</a>
+                </Link>
+              </div>
+            )}
             {update.publishedAt && (
               <div className="publishedAt">
                 <FormattedMessage

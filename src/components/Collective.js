@@ -254,6 +254,7 @@ class Collective extends React.Component {
                 <div className="content">
                   <div className="leftContent">
                     {(get(collective, 'stats.updates') > 0 ||
+                      get(collective, 'stats.collectives.memberOf') > 0 ||
                       canEditCollective) && (
                       <UpdatesSection
                         LoggedInUser={LoggedInUser}

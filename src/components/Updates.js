@@ -12,6 +12,7 @@ class Updates extends React.Component {
     fetchMore: PropTypes.func,
     editable: PropTypes.bool,
     includeHostedCollectives: PropTypes.bool,
+    includeChildCollectives: PropTypes.bool,
     LoggedInUser: PropTypes.object,
   };
 
@@ -40,6 +41,7 @@ class Updates extends React.Component {
       LoggedInUser,
       editable,
       includeHostedCollectives,
+      includeChildCollectives,
     } = this.props;
 
     if (!updates) {
@@ -101,6 +103,7 @@ class Updates extends React.Component {
                 update={update}
                 editable={editable}
                 includeHostedCollectives={includeHostedCollectives}
+                includeChildCollectives={includeChildCollectives}
                 LoggedInUser={LoggedInUser}
               />
             </div>

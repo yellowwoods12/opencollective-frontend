@@ -38,6 +38,7 @@ class UpdatesSection extends React.Component {
           collective={collective}
           compact={true}
           limit={3}
+          includeChildCollectives={true}
           LoggedInUser={LoggedInUser}
         />
       </section>

@@ -15,6 +15,7 @@ class UpdatesWithData extends React.Component {
     compact: PropTypes.bool, // compact view for homepage (can't edit update, don't show header)
     defaultAction: PropTypes.string, // "new" to open the new update form by default
     includeHostedCollectives: PropTypes.bool,
+    includeChildCollectives: PropTypes.bool,
     LoggedInUser: PropTypes.object,
   };
 
@@ -41,6 +42,7 @@ class UpdatesWithData extends React.Component {
       collective,
       compact,
       includeHostedCollectives,
+      includeChildCollectives,
     } = this.props;
 
     if (data.error) {
@@ -90,6 +92,7 @@ class UpdatesWithData extends React.Component {
           fetchMore={this.props.fetchMore}
           LoggedInUser={LoggedInUser}
           includeHostedCollectives={includeHostedCollectives}
+          includeChildCollectives={includeChildCollectives}
         />
       </div>
     );
@@ -102,12 +105,14 @@ const getUpdatesQuery = gql`
     $limit: Int
     $offset: Int
     $includeHostedCollectives: Boolean
+    $includeChildCollectives: Boolean
   ) {
     allUpdates(
       CollectiveId: $CollectiveId
       limit: $limit
       offset: $offset
       includeHostedCollectives: $includeHostedCollectives
+      includeChildCollectives: $includeChildCollectives
     ) {
       id
       slug
@@ -121,6 +126,7 @@ const getUpdatesQuery = gql`
       collective {
         id
         slug
+        name
       }
       fromCollective {
         id
@@ -139,6 +145,7 @@ const getUpdatesVariables = props => {
     offset: 0,
     limit: props.limit || UPDATES_PER_PAGE * 2,
     includeHostedCollectives: props.includeHostedCollectives || false,
+    includeChildCollectives: props.includeChildCollectives || false,
   };
 };
 
