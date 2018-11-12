@@ -27,7 +27,7 @@ import {
   getEnvVar,
 } from '../lib/utils';
 import { getPaypal } from '../lib/paypal';
-import { getStripeToken } from '../lib/stripe';
+import { getStripeCheckout, getStripeToken } from '../lib/stripe';
 import { checkUserExistence, signin } from '../lib/api';
 import { getOcCardBalanceQuery } from '../graphql/queries';
 
@@ -358,8 +358,8 @@ class OrderForm extends React.Component {
       const expiration = pm.expiryDate
         ? `- exp ${moment(pm.expiryDate).format('MM/Y')}`
         : get(pm, 'data.expMonth') || get(pm, 'data.expYear')
-          ? `- exp ${get(pm, 'data.expMonth')}/${get(pm, 'data.expYear')}`
-          : '';
+        ? `- exp ${get(pm, 'data.expMonth')}/${get(pm, 'data.expYear')}`
+        : '';
       /* Prepaid cards have their balance available */
       const balance = pm.balance
         ? `(${formatCurrency(pm.balance, pm.currency)})`
@@ -703,6 +703,41 @@ class OrderForm extends React.Component {
     }
   };
 
+  handleSubmitStripeCheckout = async () => {
+    const stripeCheckout = await getStripeCheckout();
+    const orderRequest = this.prepareOrderRequest();
+    stripeCheckout.open({
+      email: this.state.user.email,
+      name: this.props.collective.name,
+      amount: orderRequest.totalAmount,
+      token: async token => {
+        console.log(token);
+        const paymentMethod = {
+          name: token.card.last4,
+          token: token.id,
+          service: 'stripe',
+          type: 'creditcard',
+          data: {
+            expMonth: token.card.exp_month,
+            expYear: token.card.exp_year,
+            brand: token.card.brand,
+            country: token.card.country,
+            funding: token.card.funding,
+          },
+          save: true,
+        };
+        this.setState({ paymentMethod });
+        if (!(await this.validate())) return false;
+        this.setState({ loading: true });
+        try {
+          await this.submitOrder();
+        } finally {
+          this.setState({ loading: false });
+        }
+      },
+    });
+  };
+
   error = msg => {
     const error = `${msg}`;
     this.setState({ result: { error } });
@@ -783,6 +818,8 @@ class OrderForm extends React.Component {
         this.setState(newState);
         return true;
       } else if (get(newState, 'paymentMethod.type') === 'manual') {
+        return true;
+      } else if (newState.paymentMethod) {
         return true;
       } else {
         let res;
@@ -1151,20 +1188,18 @@ class OrderForm extends React.Component {
               section="userDetails"
               subtitle={
                 <div>
-                  {order.tier.type !== 'TICKET' &&
-                    !LoggedInUser && (
-                      <FormattedMessage
-                        id="tier.order.userdetails.description"
-                        defaultMessage="If you wish to remain anonymous, only provide an email address without any other personal details."
-                      />
-                    )}
-                  {order.tier.type !== 'TICKET' &&
-                    LoggedInUser && (
-                      <FormattedMessage
-                        id="tier.order.userdetails.description.loggedin"
-                        defaultMessage="If you wish to remain anonymous, logout and use another email address without providing any other personal details."
-                      />
-                    )}
+                  {order.tier.type !== 'TICKET' && !LoggedInUser && (
+                    <FormattedMessage
+                      id="tier.order.userdetails.description"
+                      defaultMessage="If you wish to remain anonymous, only provide an email address without any other personal details."
+                    />
+                  )}
+                  {order.tier.type !== 'TICKET' && LoggedInUser && (
+                    <FormattedMessage
+                      id="tier.order.userdetails.description.loggedin"
+                      defaultMessage="If you wish to remain anonymous, logout and use another email address without providing any other personal details."
+                    />
+                  )}
                 </div>
               }
             />
@@ -1193,24 +1228,23 @@ class OrderForm extends React.Component {
                 </Row>
               ))}
 
-            {!requireLogin &&
-              this.fromCollectiveOptions.length > 1 && (
-                <InputField
-                  className="horizontal"
-                  type="select"
-                  label={intl.formatMessage(
-                    this.messages[
-                      order.tier.type === 'TICKET'
-                        ? 'order.rsvpAs'
-                        : 'order.contributeAs'
-                    ],
-                  )}
-                  name="fromCollectiveSelector"
-                  onChange={CollectiveId => this.selectProfile(CollectiveId)}
-                  options={this.fromCollectiveOptions}
-                  defaultValue={get(order, 'fromCollective.id')}
-                />
-              )}
+            {!requireLogin && this.fromCollectiveOptions.length > 1 && (
+              <InputField
+                className="horizontal"
+                type="select"
+                label={intl.formatMessage(
+                  this.messages[
+                    order.tier.type === 'TICKET'
+                      ? 'order.rsvpAs'
+                      : 'order.contributeAs'
+                  ],
+                )}
+                name="fromCollectiveSelector"
+                onChange={CollectiveId => this.selectProfile(CollectiveId)}
+                options={this.fromCollectiveOptions}
+                defaultValue={get(order, 'fromCollective.id')}
+              />
+            )}
 
             {!LoggedInUser &&
               this.state.isNewUser &&
@@ -1235,12 +1269,11 @@ class OrderForm extends React.Component {
               )}
           </section>
 
-          {!fromCollective.id &&
-            this.state.orgDetails.show && (
-              <CreateOrganizationForm
-                onChange={org => this.handleChange('fromCollective', org)}
-              />
-            )}
+          {!fromCollective.id && this.state.orgDetails.show && (
+            <CreateOrganizationForm
+              onChange={org => this.handleChange('fromCollective', org)}
+            />
+          )}
 
           {!requireLogin && (
             <div>
@@ -1429,15 +1462,14 @@ class OrderForm extends React.Component {
                 <Row key="summary-info">
                   <Col sm={2} />
                   <Col sm={10}>
-                    {order.totalAmount > 0 &&
-                      !collective.host && (
-                        <div className="error">
-                          <FormattedMessage
-                            id="order.error.hostRequired"
-                            defaultMessage="This collective doesn't have a host that can receive money on their behalf"
-                          />
-                        </div>
-                      )}
+                    {order.totalAmount > 0 && !collective.host && (
+                      <div className="error">
+                        <FormattedMessage
+                          id="order.error.hostRequired"
+                          defaultMessage="This collective doesn't have a host that can receive money on their behalf"
+                        />
+                      </div>
+                    )}
 
                     {(collective.host || order.totalAmount === 0) &&
                       !this.isPayPalSelected() && (
@@ -1448,6 +1480,26 @@ class OrderForm extends React.Component {
                               onClick={this.handleSubmit}
                               disabled={this.state.loading}
                             >
+                              {this.state.loading ? (
+                                <FormattedMessage
+                                  id="form.processing"
+                                  defaultMessage="processing"
+                                />
+                              ) : (
+                                order.tier.button ||
+                                capitalize(
+                                  intl.formatMessage(
+                                    this.messages['order.button'],
+                                  ),
+                                )
+                              )}
+                            </ActionButton>
+                            <ActionButton
+                              className="blue"
+                              onClick={this.handleSubmitStripeCheckout}
+                              disabled={this.state.loading}
+                            >
+                              Stripe Checkout
                               {this.state.loading ? (
                                 <FormattedMessage
                                   id="form.processing"

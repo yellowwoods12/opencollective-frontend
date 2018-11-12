@@ -2,7 +2,7 @@ import Payment from 'payment';
 
 import { getEnvVar, loadScriptAsync } from './utils';
 
-let stripe;
+let stripe, stripeCheckout;
 
 const getStripe = async () => {
   if (!stripe) {
@@ -17,6 +17,23 @@ const getStripe = async () => {
     }
   }
   return stripe;
+};
+
+const getStripeCheckout = async () => {
+  if (!stripeCheckout) {
+    const stripeKey = getEnvVar('STRIPE_KEY');
+    if (stripeKey) {
+      if (typeof window.StripeCheckout === 'undefined') {
+        await loadScriptAsync('https://checkout.stripe.com/checkout.js');
+      }
+      stripeCheckout = window.StripeCheckout.configure({
+        key: stripeKey,
+      });
+    } else {
+      throw new Error("'STRIPE_KEY' is undefined.");
+    }
+  }
+  return stripeCheckout;
 };
 
 const getStripeToken = (type = 'cc', data) => {
@@ -68,4 +85,4 @@ const isValidCard = card => {
   );
 };
 
-export { getStripe, getStripeToken, isValidCard };
+export { getStripe, getStripeCheckout, getStripeToken, isValidCard };
