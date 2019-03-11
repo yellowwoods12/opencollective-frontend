@@ -64,6 +64,18 @@ class EditTwitterAccount extends React.Component {
         defaultMessage:
           '🎉 {collective} just reached 10 backers! Thank you {topBackersTwitterHandles} 🙌  Support them too!',
       },
+      'fiftyBackers.toggle.label': {
+        id: 'connectedAccounts.twitter.fiftyBackers.toggle.label',
+        defaultMessage: '50 backers',
+      },
+      'fiftyBackers.toggle.description': {
+        id: 'connectedAccounts.twitter.fiftyBackers.toggle.description',
+        defaultMessage: 'Whenever one of the collectives that you are hosting reaches 50 backers',
+      },
+      'fiftyBackers.tweet': {
+        id: 'connectedAccounts.twitter.fiftyBackers.tweet',
+        defaultMessage: '🎉 {collective} just reached 50 backers!! 🙌  Support them too!',
+      },
       'oneHundredBackers.toggle.label': {
         id: 'connectedAccounts.twitter.oneHundredBackers.toggle.label',
         defaultMessage: '100 backers',
@@ -96,7 +108,7 @@ class EditTwitterAccount extends React.Component {
     }
 
     if (props.collective.isHost) {
-      this.notificationTypes = ['tenBackers', 'oneHundredBackers', 'oneThousandBackers'];
+      this.notificationTypes = ['tenBackers', 'fiftyBackers', 'oneHundredBackers', 'oneThousandBackers'];
     }
 
     this.state = { connectedAccount: cloneDeep(props.connectedAccount) };
