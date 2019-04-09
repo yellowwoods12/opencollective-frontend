@@ -26,7 +26,6 @@ import Link from '../components/Link';
 import ContributeAs from '../components/ContributeAs';
 import StyledInputField from '../components/StyledInputField';
 import { withStripeLoader } from '../components/StripeProvider';
-import { withUser } from '../components/UserProvider';
 import ContributePayment from '../components/ContributePayment';
 import ContributeDetails from '../components/ContributeDetails';
 import Loading from '../components/Loading';
@@ -659,7 +658,7 @@ class CreateOrderPage extends React.Component {
     const tier = this.props.data.Tier;
     const defaultStepDetails = this.getDefaultStepDetails(tier);
     const interval = get(stepDetails, 'interval') || defaultStepDetails.interval;
-
+    console.log(data);
     if (step.name === 'contributeAs') {
       return (
         <StyledInputField
@@ -950,6 +949,34 @@ class CreateOrderPage extends React.Component {
   }
 }
 
+const userCollectiveFields = `
+id
+CollectiveId
+collective {
+  id
+  name
+  type
+  slug
+  settings
+  currency
+  isDeletable
+  location {
+    country
+  }
+  paymentMethods(limit: 10, hasBalanceAboveZero: true) {
+    id
+    uuid
+    currency
+    name
+    service
+    type
+    data
+    balance
+    expiryDate
+  }
+}
+`;
+
 const collectiveFields = `
   id
   slug
@@ -985,6 +1012,14 @@ const CollectiveDataQuery = gql`
   query Collective($slug: String!) {
     Collective(slug: $slug) {
       ${collectiveFields}
+    }
+  }
+`;
+
+const LoggedInUserQuery = gql`
+  query LoggedInUser {
+    LoggedInUser {
+      ${userCollectiveFields}
     }
   }
 `;
@@ -1032,10 +1067,11 @@ export const addCreateOrderMutation = graphql(
 );
 
 const addGraphQL = compose(
+  graphql(LoggedInUserQuery),
   graphql(CollectiveDataQuery, { skip: props => props.tierId }),
   graphql(CollectiveWithTierDataQuery, { skip: props => !props.tierId }),
   addCreateCollectiveMutation,
   addCreateOrderMutation,
 );
 
-export default withIntl(addGraphQL(withUser(withStripeLoader(CreateOrderPage))));
+export default withIntl(addGraphQL(withStripeLoader(CreateOrderPage)));
