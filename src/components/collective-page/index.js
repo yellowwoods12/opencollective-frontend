@@ -13,6 +13,7 @@ import Container from '../Container';
 import { AllSectionsNames, Sections, Dimensions } from './_constants';
 import Hero from './Hero';
 import SectionAbout from './SectionAbout';
+import SectionContribute from './SectionContribute';
 import SectionContributors from './SectionContributors';
 
 /** A mutation used by child components to update the collective */
@@ -146,6 +147,8 @@ export default class CollectivePage extends Component {
       );
     } else if (section === Sections.CONTRIBUTORS) {
       return <SectionContributors collectiveName={this.props.collective.name} members={this.props.members} />;
+    } else if (section === Sections.CONTRIBUTE) {
+      return <SectionContribute />;
     }
 
     // Placeholder for sections not implemented yet
