@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import Head from 'next/head';
 import TopBar from './TopBar';
 
@@ -6,6 +7,10 @@ import { truncate, getQueryParams } from '../lib/utils';
 import storage from '../lib/storage';
 
 class Header extends React.Component {
+  static propTypes = {
+    canonicalURL: PropTypes.string,
+  };
+
   constructor(props) {
     super(props);
     const { description, image, twitterHandle } = props;
@@ -37,7 +42,7 @@ class Header extends React.Component {
   }
 
   render() {
-    const { css, className } = this.props;
+    const { css, className, canonicalURL } = this.props;
     let title = this.props.title || 'Open Collective - open your finances to your community';
     if (!title.match(/open collective/i)) {
       title += ' - Open Collective';
@@ -55,6 +60,7 @@ class Header extends React.Component {
           {this.meta.map(({ name, content }) => (
             <meta property={name} content={content} key={`meta-${name}`} />
           ))}
+          {canonicalURL && <link rel="canonical" href={canonicalURL} />}
         </Head>
         <div id="top" />
         <TopBar className={className} showSearch={this.props.showSearch} />
