@@ -6,7 +6,7 @@ import { graphql, compose } from 'react-apollo';
 import { get } from 'lodash';
 import { FormattedMessage, defineMessages } from 'react-intl';
 import styled from 'styled-components';
-import { themeGet } from 'styled-system';
+import themeGet from '@styled-system/theme-get';
 
 import withIntl from '../lib/withIntl';
 import { withUser } from '../components/UserProvider';

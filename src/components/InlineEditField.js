@@ -5,7 +5,7 @@ import { Flex, Box } from '@rebass/grid';
 import { Mutation } from 'react-apollo';
 import { get, set, pick } from 'lodash';
 import styled from 'styled-components';
-import { themeGet } from 'styled-system';
+import themeGet from '@styled-system/theme-get';
 
 import { Edit } from 'styled-icons/feather/Edit';
 

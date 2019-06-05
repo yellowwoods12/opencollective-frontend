@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import Downshift from 'downshift';
 import styled from 'styled-components';
-import { themeGet } from 'styled-system';
+import themeGet from '@styled-system/theme-get';
 import { CaretDown } from 'styled-icons/fa-solid/CaretDown';
 
 import Container from './Container';
