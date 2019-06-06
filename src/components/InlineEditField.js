@@ -17,7 +17,7 @@ import StyledTextarea from './StyledTextarea';
 /** Container used to show the description to users than can edit it */
 const EditIcon = styled(Edit)`
   cursor: pointer;
-  color: ${themeGet('colors.black.300')};
+  color: ${themeGet('colors.black.400')};
   &:hover {
     color: ${themeGet('colors.primary.700')};
   }

@@ -12,6 +12,7 @@ import gql from 'graphql-tag';
 import roles from '../../constants/roles';
 import { CollectiveType } from '../../constants/collectives';
 import { getWebsiteUrl } from '../../lib/utils';
+import withViewport, { VIEWPORTS, isDesktopOrAbove } from '../../lib/withViewport';
 import { P, H1, H3 } from '../Text';
 import StyledButton from '../StyledButton';
 import Container from '../Container';
@@ -29,6 +30,7 @@ import { Dimensions } from './_constants';
 import ShareButtons from './ShareButtons';
 import TierContributors from './TierContributors';
 import BubblesSVG from './Bubbles.svg';
+import VideoLinkerBox from '../VideoLinkerBox';
 
 // Dynamicly load HTMLEditor to download it only if user can edit the page
 const HTMLEditorLoadingPlaceholder = () => <LoadingPlaceholder height={400} />;
@@ -124,6 +126,9 @@ class TierPage extends Component {
     /** The logged in user */
     LoggedInUser: PropTypes.object,
 
+    /** @ignore from withViewport */
+    viewport: PropTypes.oneOf(Object.values(VIEWPORTS)),
+
     /** @ignore from `withRouter` */
     router: PropTypes.object,
   };
@@ -141,13 +146,14 @@ class TierPage extends Component {
   }
 
   render() {
-    const { collective, tier, members, membersStats, LoggedInUser } = this.props;
+    const { collective, tier, members, membersStats, LoggedInUser, viewport } = this.props;
     const canEditTier = LoggedInUser && LoggedInUser.canEditCollective(collective);
     const amountRaised = tier.interval ? tier.stats.totalRecurringDonations : tier.stats.totalDonated;
     const shareBlock = this.renderShareBlock();
 
     return (
       <Container borderTop="1px solid #E6E8EB">
+        {/** ---- Hero / Banner ---- */}
         <Container
           display="flex"
           alignItems="center"
@@ -194,8 +200,8 @@ class TierPage extends Component {
             top={Dimensions.COVER_HEIGHT}
           />
         </Container>
+        {/** ---- Description ---- */}
         <Flex justifyContent="center">
-          {/** Description */}
           <Flex flex="0 1 1800px" px={[2, 4]} justifyContent="space-evenly" mb={64}>
             <Container
               display="flex"
@@ -230,41 +236,52 @@ class TierPage extends Component {
                     }
                   />
                 </H3>
-                <InlineEditField
-                  mutation={EditTierMutation}
-                  values={tier}
-                  field="longDescription"
-                  canEdit={canEditTier}
-                >
-                  {({ isEditing, value, setValue, enableEditor }) => {
-                    if (isEditing) {
-                      return (
-                        <HTMLContent>
-                          <HTMLEditor
-                            defaultValue={value}
-                            onChange={setValue}
-                            allowedHeaders={[false, 2, 3]} /** Disable H1 */
-                          />
-                        </HTMLContent>
-                      );
-                    } else if (isEmptyValue(tier.longDescription)) {
-                      return !canEditTier ? null : (
-                        <StyledButton buttonSize="large" onClick={enableEditor} data-cy="Btn-Add-longDescription">
-                          <FormattedMessage id="TierPage.AddLongDescription" defaultMessage="Add a rich description" />
-                        </StyledButton>
-                      );
-                    } else {
-                      return <HTMLContent content={tier.longDescription} data-cy="longDescription" />;
-                    }
-                  }}
-                </InlineEditField>
+                <Container display="flex" position="relative">
+                  <InlineEditField
+                    mutation={EditTierMutation}
+                    values={tier}
+                    field="longDescription"
+                    canEdit={canEditTier}
+                  >
+                    {({ isEditing, value, setValue, enableEditor }) => {
+                      if (isEditing) {
+                        return (
+                          <HTMLContent>
+                            <HTMLEditor
+                              defaultValue={value}
+                              onChange={setValue}
+                              allowedHeaders={[false, 2, 3]} /** Disable H1 */
+                            />
+                          </HTMLContent>
+                        );
+                      } else if (isEmptyValue(tier.longDescription)) {
+                        return !canEditTier ? null : (
+                          <StyledButton buttonSize="large" onClick={enableEditor} data-cy="Btn-Add-longDescription">
+                            <FormattedMessage
+                              id="TierPage.AddLongDescription"
+                              defaultMessage="Add a rich description"
+                            />
+                          </StyledButton>
+                        );
+                      } else {
+                        return <HTMLContent content={tier.longDescription} data-cy="longDescription" />;
+                      }
+                    }}
+                  </InlineEditField>
+                  {/** Video (desktop only) */}
+                  {canEditTier && isDesktopOrAbove(viewport) && (
+                    <Container position="absolute" width={472} top={0} right={-485}>
+                      <VideoLinkerBox />
+                    </Container>
+                  )}
+                </Container>
                 <Container display={['block', null, null, 'none']} mt={2} maxWidth={275}>
                   {shareBlock}
                 </Container>
               </Container>
             </Container>
 
-            {/** Contribute */}
+            {/** ---- Contribute ---- */}
             <Container
               position={['fixed', null, null, 'relative']}
               bottom={0}
@@ -337,6 +354,7 @@ class TierPage extends Component {
                   </Box>
                 )}
               </Flex>
+              {/** Contribute button */}
               <Flex alignItems="center">
                 <Box width={1}>
                   <Link
@@ -354,6 +372,7 @@ class TierPage extends Component {
                   </Link>
                 </Box>
               </Flex>
+              {/** Share buttons (desktop only) */}
               <Container display={['none', null, null, 'block']}>{shareBlock}</Container>
             </Container>
           </Flex>
@@ -364,4 +383,4 @@ class TierPage extends Component {
   }
 }
 
-export default withRouter(TierPage);
+export default withRouter(withViewport(TierPage));
