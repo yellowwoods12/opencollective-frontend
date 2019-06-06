@@ -24,6 +24,10 @@ export const withMockRouterContext = mockRouter => {
     }
   }
 
+  MockRouterContext.propTypes = {
+    children: PropTypes.element.isRequired,
+  };
+
   MockRouterContext.childContextTypes = {
     router: PropTypes.object,
   };

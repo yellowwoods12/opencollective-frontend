@@ -32,7 +32,7 @@ const Currency = ({ abbreviate, currency, precision, value, ...styles }) => (
 
 Currency.propTypes = {
   /** The amount to display, in cents */
-  value: PropTypes.number.isRequired,
+  value: PropTypes.number,
   /** The currency (eg. `USD`, `EUR`...etc) */
   currency: PropTypes.string.isRequired,
   /** Abbreviate the name to display 100k instead of 100.000 */
@@ -46,6 +46,7 @@ Currency.propTypes = {
 Currency.defaultProps = {
   abbreviate: false,
   precision: 0,
+  value: 0,
 };
 
 export default Currency;
