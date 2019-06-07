@@ -11,7 +11,7 @@ describe('create an organization', () => {
     cy.wait(500);
     cy.get('.actions button').click();
     cy.wait(1000);
-    cy.get('.CreateOrganizationPage .CollectiveCover h1', {
+    cy.get('.UserCollectivePage .CollectiveCover h1', {
       timeout: 10000,
     }).contains('New org');
     cy.get('.UserCollectivePage .CollectiveCover .website').contains('newco.com');
